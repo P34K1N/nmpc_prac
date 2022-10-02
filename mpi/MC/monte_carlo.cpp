@@ -75,16 +75,16 @@ int main(int argc, char* argv[]) {
   int exp_count_for_process =
       exp_count / size + (exp_count % size > myrank ? 1 : 0);
 
-  uint32_t total_right_count = 0;
-  uint32_t total_steps = 0;
+  u_int32_t total_right_count = 0;
+  u_int32_t total_steps = 0;
   for (size_t i = 0; i < exp_count_for_process; i++) {
     std::pair<bool, int> result = walker.walk();
     total_right_count += result.first ? 1 : 0;
     total_steps += result.second;
   }
 
-  uint32_t reduced_total_right_count = 0;
-  uint32_t reduced_total_steps = 0;
+  u_int32_t reduced_total_right_count = 0;
+  u_int32_t reduced_total_steps = 0;
 
   MPI_Reduce(&total_right_count, &reduced_total_right_count, 1, MPI_UINT32_T,
              MPI_SUM, 0, MPI_COMM_WORLD);
