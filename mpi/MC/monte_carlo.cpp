@@ -2,8 +2,14 @@
 
 #include <fstream>
 #include <iostream>
-#include <random>
 #include <utility>
+
+#include <ctime>
+#include <cstdlib>
+
+bool simple_bernoulli(float prob) {
+  return (float(rand()) / RAND_MAX) < prob;
+}
 
 class Walker {
  public:
@@ -35,11 +41,7 @@ class Walker {
   float right_prob_;
 
   int step() const {
-    std::random_device dev;
-    std::mt19937 rng(dev());
-    std::bernoulli_distribution walker(right_prob_);
-
-    if (walker(rng)) {
+    if (simple_bernoulli(right_prob_)) {
       return 1;
     }
     return -1;
@@ -51,17 +53,18 @@ int main(int argc, char* argv[]) {
   int myrank, size;
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+  srand(time(NULL));
 
   if (argc <= 5) {
     std::cerr << "Too few arguments" << std::endl;
     return 1;
   }
 
-  int left_border = std::strtol(argv[1], NULL, 10);
-  int right_border = std::strtol(argv[2], NULL, 10);
-  int start_pos = std::strtol(argv[3], NULL, 10);
-  float right_prob = std::strtof(argv[4], NULL);
-  size_t exp_count = std::strtoul(argv[5], NULL, 10);
+  int left_border = std::atoi(argv[1]);
+  int right_border = std::atoi(argv[2]);
+  int start_pos = std::atoi(argv[3]);
+  float right_prob = std::atof(argv[4]);
+  size_t exp_count = std::atoi(argv[5]);
 
   MPI_Barrier(MPI_COMM_WORLD);
   double start, finish;
@@ -75,7 +78,7 @@ int main(int argc, char* argv[]) {
   uint32_t total_right_count = 0;
   uint32_t total_steps = 0;
   for (size_t i = 0; i < exp_count_for_process; i++) {
-    auto result = walker.walk();
+    std::pair<bool, int> result = walker.walk();
     total_right_count += result.first ? 1 : 0;
     total_steps += result.second;
   }
